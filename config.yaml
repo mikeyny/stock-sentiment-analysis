@@ -1,0 +1,54 @@
+input:
+  http_client:
+    url: "https://feeds.finance.yahoo.com/rss/2.0/headline?s=AAPL,TSLA,GOOG&region=US&lang=en-US"
+    verb: GET
+    headers:
+      User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    timeout: 10s
+    retry_period: 5s
+    rate_limit: limit
+    retries: 3
+    drop_on: []
+
+pipeline:
+  processors:
+    - xml:
+        operator: to_json
+    
+    - bloblang: |
+        # Extract articles from the RSS feed
+        let items = this.rss.channel.item
+        let timestamp_ms = (timestamp_unix_nano() / 1000000).floor()
+        let feed_title = this.rss.channel.title
+        let tickers = ["AAPL", "TSLA", "GOOG"]  # Hardcoded since we know what we requested
+        
+        # Iterate through items and create a structured array
+        root = $items.map_each(item -> {
+          "title": item.title,
+          "description": item.description,
+          "link": item.link,
+          "published": item.pubDate,
+          "guid": item.guid.content,
+          "is_permalink": item.guid."-isPermaLink",
+          "timestamp_ms": $timestamp_ms,
+          "ticker_symbols": $tickers
+        })
+
+output:
+  kafka:
+    addresses:
+      - redpanda:9092
+    topic: raw_articles
+    key: "${! uuid_v4() }"
+    max_in_flight: 5
+
+logger:
+  level: INFO
+  format: json
+  add_timestamp: true
+
+rate_limit_resources:
+  - label: limit
+    local:
+      count: 2
+      interval: 1m 
