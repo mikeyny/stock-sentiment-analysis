@@ -81,13 +81,8 @@ def process_article(article):
 
 def save_results():
     """Save the current results to JSON file"""
-    # Create output directory if it doesn't exist
-    os.makedirs("analyzed_data", exist_ok=True)
-    
-    # Save current results
-    with open("analyzed_data/sentiment_results.json", "w") as f:
+    with open(OUTPUT_DIR / "sentiment_results.json", "w") as f:
         json.dump(list(RESULTS.values()), f, indent=2)
-
 
 def create_dataflow():
     """Create the Bytewax dataflow pipeline"""
@@ -141,6 +136,5 @@ def create_dataflow():
     return flow
 
 if __name__ == "__main__":
-    
     flow = create_dataflow()
     run_main(flow)

@@ -4,7 +4,7 @@ import json
 import time
 from pathlib import Path
 
-# Define the tickers we're tracking
+# Define the tickers you're tracking
 TARGET_TICKERS = ['AAPL', 'TSLA', 'GOOG']
 
 def load_data():
@@ -13,14 +13,13 @@ def load_data():
     if file_path.exists():
         with open(file_path, "r") as f:
             try:
-                print(f"Loading data from {file_path}")
                 data = json.load(f)
                 return data
             except json.JSONDecodeError:
-                st.error("Error parsing JSON file")
+                st.error("Error parsing JSON file")  # Display error in the app
                 return []
     else:
-        st.warning("No sentiment data found.")
+        st.warning("No sentiment data found.")  # Display warning in the app
         return []
 
 def main():
@@ -89,6 +88,10 @@ def main():
     
     # Show last update time
     st.caption(f"Last updated: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+
+    if auto_refresh:
+        time.sleep(refresh_interval)
+        st.rerun()
 
 if __name__ == "__main__":
     main() 

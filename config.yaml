@@ -20,7 +20,7 @@ pipeline:
         let items = this.rss.channel.item
         let timestamp_ms = (timestamp_unix_nano() / 1000000).floor()
         let feed_title = this.rss.channel.title
-        let tickers = ["AAPL", "TSLA", "GOOG"]  # Hardcoded since we know what we requested
+        let tickers = ["AAPL", "TSLA", "GOOG"]  # Hardcoded since you know what you requested
         
         # Iterate through items and create a structured array
         root = $items.map_each(item -> {
@@ -41,11 +41,6 @@ output:
     topic: raw_articles
     key: "${! uuid_v4() }"
     max_in_flight: 5
-
-logger:
-  level: INFO
-  format: json
-  add_timestamp: true
 
 rate_limit_resources:
   - label: limit
